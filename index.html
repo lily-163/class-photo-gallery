@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高2027届5班图片库</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+            background: #f5f7fa;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+        h1 {
+            text-align: center;
+            color: #2d8cf0;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 25px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            background: #fdfdfd;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            border-left: 4px solid #2d8cf0;
+            padding-left: 10px;
+        }
+        input, select, button {
+            padding: 10px 14px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            width: 100%;
+            max-width: 340px;
+            font-size: 0.95rem;
+        }
+        button {
+            background: #2d8cf0;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #1b74d1;
+        }
+        .theme-section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            border: 1px solid #eee;
+        }
+        .theme-title {
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: #2d8cf0;
+            margin-bottom: 18px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #eee;
+        }
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 18px;
+        }
+        .media-item {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            overflow: hidden;
+            text-align: center;
+            background: white;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+        }
+        .media-item img, .media-item video {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            background: #000;
+        }
+        .download-btn {
+            padding: 8px;
+            background: #5cb85c;
+            font-size: 0.9rem;
+            margin: 6px;
+            width: 85%;
+            border-radius: 5px;
+        }
+        .delete-btn {
+            padding: 8px;
+            background: #ff4d4f;
+            font-size: 0.9rem;
+            margin: 6px;
+            width: 85%;
+            border-radius: 5px;
+        }
+        .tip {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 10px 0;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 高2027届5班图片库</h1>
+
+        <div class="section">
+            <h2>📂 所有图片 & 视频（按主题分类）</h2>
+            <input type="password" id="viewPwd" placeholder="输入查看密码">
+            <button onclick="showAllMedia()">查看全部内容</button>
+            <div id="allMediaContainer"></div>
+        </div>
+
+        <div class="section">
+            <h2>📤 上传图片 / 视频（选择主题）</h2>
+            <input type="password" id="uploadPwd" placeholder="输入上传密码">
+            <select id="themeSelect">
+                <option value="班级活动">班级活动</option>
+                <option value="校园风景">校园风景</option>
+                <option value="学习资料">学习资料</option>
+                <option value="日常瞬间">日常瞬间</option>
+                <option value="自定义">自定义主题</option>
+            </select>
+            <input type="text" id="customTheme" placeholder="输入自定义主题" style="display:none;">
+            <input type="file" id="fileInput" accept="image/*,video/*" multiple>
+            <button onclick="uploadMedia()">开始上传</button>
+            <p class="tip">支持：图片+视频，可多选上传</p>
+        </div>
+
+        <div class="section">
+            <h2>🔐 修改密码（需验证问题）</h2>
+            <p style="margin:10px 0; font-weight:bold;">验证问题：那个班最好？</p>
+            <input type="text" id="answer" placeholder="请输入答案">
+            <input type="password" id="oldPwd" placeholder="原密码">
+            <input type="password" id="newPwd" placeholder="新密码">
+            <button onclick="changePassword()">确认修改密码</button>
+            <p class="tip">默认查看/上传密码：123456</p>
+        </div>
+    </div>
+
+    <script>
+        let PASSWORD = localStorage.getItem('classPassword') || '123456';
+        let DELETE_PASSWORD = '980702';
+        let MEDIA = JSON.parse(localStorage.getItem('classMedia')) || [];
+
+        document.getElementById('themeSelect').addEventListener('change', function(){
+            const custom = document.getElementById('customTheme');
+            this.value === '自定义' ? custom.style.display='block' : custom.style.display='none';
+        });
+
+        function changePassword(){
+            const ans = document.getElementById('answer').value.trim();
+            const old = document.getElementById('oldPwd').value;
+            const newPwd = document.getElementById('newPwd').value;
+            if(ans!=='我们班'){alert('回答错误！');return;}
+            if(old!==PASSWORD){alert('原密码错误！');return;}
+            if(!newPwd){alert('新密码不能为空！');return;}
+            PASSWORD = newPwd;
+            localStorage.setItem('classPassword',newPwd);
+            alert('密码修改成功！');
+            document.getElementById('answer').value='';
+            document.getElementById('oldPwd').value='';
+            document.getElementById('newPwd').value='';
+        }
+
+        function uploadMedia(){
+            const pwd = document.getElementById('uploadPwd').value;
+            const files = document.getElementById('fileInput').files;
+            let theme = document.getElementById('themeSelect').value;
+            const custom = document.getElementById('customTheme').value.trim();
+            if(theme==='自定义'&&custom) theme=custom;
+            if(pwd!==PASSWORD){alert('密码错误！');return;}
+            if(files.length===0){alert('请选择文件！');return;}
+
+            let count=0;
+            for(let file of files){
+                const reader = new FileReader();
+                reader.onload=e=>{
+                    MEDIA.push({
+                        theme:theme,
+                        data:e.target.result,
+                        name:file.name,
+                        type:file.type.startsWith('image')?'image':'video'
+                    });
+                    localStorage.setItem('classMedia',JSON.stringify(MEDIA));
+                    count++;
+                    if(count===files.length){
+                        alert('上传完成！');
+                        document.getElementById('viewPwd').value=pwd;
+                        showAllMedia();
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+            document.getElementById('uploadPwd').value='';
+            document.getElementById('customTheme').value='';
+            document.getElementById('fileInput').value='';
+        }
+
+        function showAllMedia(){
+            const pwd = document.getElementById('viewPwd').value;
+            const container = document.getElementById('allMediaContainer');
+            if(pwd!==PASSWORD){alert('密码错误！');return;}
+            container.innerHTML='';
+            if(MEDIA.length===0){
+                container.innerHTML='<p style="padding:20px;">暂无媒体文件</p>';
+                return;
+            }
+            const grouped={};
+            MEDIA.forEach(item=>{
+                if(!grouped[item.theme]) grouped[item.theme]=[];
+                grouped[item.theme].push(item);
+            });
+            for(let theme in grouped){
+                const themeDiv=document.createElement('div');
+                themeDiv.className='theme-section';
+                themeDiv.innerHTML=`<div class="theme-title">📁 ${theme}（${grouped[theme].length}个）</div>`;
+                const grid=document.createElement('div');
+                grid.className='image-grid';
+                grouped[theme].forEach((item,index)=>{
+                    const el=document.createElement('div');
+                    el.className='media-item';
+                    const mediaHtml=item.type==='image'
+                        ?`<img src="${item.data}" alt="${item.name}">`
+                        :`<video controls src="${item.data}"></video>`;
+                    el.innerHTML=`
+                        ${mediaHtml}
+                        <button class="download-btn" onclick="download('${item.data}','${item.name}')">下载</button>
+                        <button class="delete-btn" onclick="deleteMedia(${index})">删除</button>
+                    `;
+                    grid.appendChild(el);
+                });
+                themeDiv.appendChild(grid);
+                container.appendChild(themeDiv);
+            }
+        }
+
+        function download(data,name){
+            const a=document.createElement('a');
+            a.href=data;
+            a.download=name;
+            a.click();
+        }
+
+        function deleteMedia(index){
+            const pwd=prompt('请输入删除密码：');
+            if(pwd!==DELETE_PASSWORD){alert('删除密码错误！');return;}
+            MEDIA.splice(index,1);
+            localStorage.setItem('classMedia',JSON.stringify(MEDIA));
+            alert('删除成功！');
+            showAllMedia();
+        }
+    </script>
+</body>
+</html>
